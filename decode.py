@@ -22,13 +22,14 @@ BREAKPOINTS = {
   'xc': 'xlarge-centered',
 }
 
+# Regular expressions for finding column sizes and column clusters
+re_size   = r"[a-z]{2}-?[1-9]*(?:\(.*\))?"
+re_column = r"(?:"+re_size+")+"
+re_row    = r"(?:"+re_column+",*)+"
+
 def parse_row(input, depth):
   row_indent = '\t' * (depth * 2)
   column_indent = row_indent + '\t'
-
-  # Regular expressions for finding column sizes and column clusters
-  re_size = r"[a-z]{2}-*?[1-9]*(?:\(.*\))?"
-  re_column = r"(?:"+re_size+")+"
 
   columns = re.findall(re_column, input)
 

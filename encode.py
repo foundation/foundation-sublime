@@ -58,9 +58,7 @@ def encodeGrid(tree, root=True):
       classes = elem['classes'].split(' ')
       for cls in classes:
         if cls in CLASSES:
-          output += '%s,' % CLASSES[cls]
-      # Trim the last hyphen
-      output = output[:-1]
+          output += CLASSES[cls]
 
     # We have to go deeper
     if elem['children']:
@@ -70,13 +68,26 @@ def encodeGrid(tree, root=True):
         nestedOutput = '(%s)' % nestedOutput
       output += nestedOutput
 
-    # If it's a row, stick a comma on the end
-    if 'row' in elem['classes'] and elem is not tree[-1]:
-      output += '|'
+    # Add an appropriate separator if the element is not the last of the bunch
+    if elem is not tree[-1]:
+      # Rows are separated by a pipe
+      if 'row' in elem['classes']:
+        output += '|'
+      # Columns are separated by a comma
+      elif 'column' in elem['classes']:
+        output += ','
 
   return output
 
 syntax = """
+  <div class="row">
+    <div class="small-8 columns">
+      <div class="row">
+        <div class="small-12 columns"></div>
+        <div class="small-12 columns"></div>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="small-8 columns">
       <div class="row">
