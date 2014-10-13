@@ -1,5 +1,5 @@
 from HTMLParser import HTMLParser
-import pprint
+import re
 
 class foundationParser(HTMLParser):
   # This is a dictionary that stores the structure of our HTML
@@ -8,6 +8,7 @@ class foundationParser(HTMLParser):
   depth = -1
 
   def getTree(self):
+    self.prune(self.tree)
     return self.tree
 
   def getLastChild(self, l):
@@ -18,8 +19,12 @@ class foundationParser(HTMLParser):
   # This method is run when the parser encounters an opening tag
   def handle_starttag(self, tag, attrs):
     attrlist = dict(attrs)
+
+    # No class? Forget it
+    if not 'class' in attrlist:
+      return
     # Skip this tag if it doesn't have any grid classes
-    if not any(x in attrlist['class'] for x in ['row', 'column', 'columns']):
+    if not any(x in attrlist['class'].split(' ') for x in ['row', 'column', 'columns']):
       return
 
     # Create a new object for this element
@@ -42,25 +47,69 @@ class foundationParser(HTMLParser):
     # Move up one depth level
     self.depth -= 1
 
+  # Prune rows with no children to keep the final output of the encoder more clean
+  def prune(self, tree):
+    for i, elem in enumerate(tree):
+      # Recursively search for more rows
+      if len(elem['children']) > 0:
+        self.prune(elem['children'])
+      # If the element is a row with no children, remove it from the tree
+      elif 'row' in elem['classes']:
+        del tree[i]
+
 def encodeGrid(tree, root=True):
-  CLASSES = {
-    'small-12': 'sg12',
-    'small-8': 'sg8',
-  }
+  def parseClass(cls):
+    output = ''
+
+    re_class = r'(small|medium|large|xlarge){1}-((centered|offset|push|pull)-?)?[\d]*'
+    pattern = re.compile(re_class)
+
+    sizeClasses = ['small', 'medium', 'large', 'xlarge']
+    featureClasses = ['offset', 'centered', 'push', 'pull']
+
+    # The class must have a breakpoint keyword in it
+    if pattern.search(cls) is None:
+      return output
+
+    # Alright, figure out what the breakpoint is
+    classes = cls.split('-')
+    isPull = False
+    noFeature = True
+
+    for term in classes:
+      # This is a breakpoint class
+      if any(x in term for x in sizeClasses):
+        output += term[0]
+      # This is a feature class
+      if any(x in term for x in featureClasses):
+        noFeature = False
+        isPull = term == 'pull'
+        output += term[0]
+      # This is a sizing class
+      if term.isdigit():
+        if isPull:
+          output += '-'+term
+        else:
+          output += term
+
+    # If this class is for column sizing, insert the missing "g"
+    if noFeature:
+      output = output[0] + 'g' + output[1:]
+
+    return output
 
   output = ''
   for elem in tree:
     # Debugging
-    print "Element '%s' has '%s' children." % (elem['classes'], len(elem['children']))
+    # print "Element '%s' has '%s' children." % (elem['classes'], len(elem['children']))
 
     # If it's a column, get the classes
     if 'column' in elem['classes']:
       classes = elem['classes'].split(' ')
       for cls in classes:
-        if cls in CLASSES:
-          output += CLASSES[cls]
+        output += parseClass(cls)
 
-    # We have to go deeper
+    # If the element has children, encode those nodes as well
     if elem['children']:
       nestedOutput = encodeGrid(elem['children'], False)
       # The children of a row are wrapped in parentheses
@@ -81,24 +130,19 @@ def encodeGrid(tree, root=True):
 
 syntax = """
   <div class="row">
-    <div class="small-8 columns">
+    <div class="large-8 columns">
       <div class="row">
-        <div class="small-12 columns"></div>
-        <div class="small-12 columns"></div>
+        <div class="small-5 small-pull-2 columns"></div>
+        <div class="small-7 columns"></div>
       </div>
     </div>
   </div>
   <div class="row">
-    <div class="small-8 columns">
-      <div class="row">
-        <div class="small-12 columns"></div>
-        <div class="small-12 columns"></div>
-      </div>
-    </div>
   </div>
 """
 
 parser = foundationParser()
 parser.feed(syntax)
 tree = parser.getTree()
+# print tree;
 print encodeGrid(tree)
