@@ -20,6 +20,10 @@ BREAKPOINTS = {
   'mc': 'medium-centered',
   'lc': 'large-centered',
   'xc': 'xlarge-centered',
+  'sp': 'small-pu',
+  'mp': 'medium-pu',
+  'lp': 'large-pu',
+  'xp': 'xlarge-pu',
 }
 
 # Regular expressions for finding column sizes and column clusters
@@ -38,24 +42,34 @@ def parse_row(input, depth):
 
   # Processing columns
   for column in columns:
-    string = column.split('>', 1)
-    base_column = string[0]
-    nested_row  = string[1] if len(string) > 1 else None
-
-    sizes = re.findall(re_size, base_column)
+    # Given the string sg1(sg2)
+    # sg1 is the base_column, and (sg2) is the nested row
+    base_column = column.split('(', 1)[0]
+    nested_row = re.findall(r'\(.*\)', column)
 
     # Opening tag for column
     output += '%s<div class="' % column_indent
 
     # Processing breakpoint classes
+    sizes = re.findall(re_size, base_column)
     for size in sizes:
       bp, number = size[:2], size[2:]
-      output += '%s-%s ' % (BREAKPOINTS[bp], number)
+      if 'p' in bp:
+        # Pull (negative number)
+        if '-' in number:
+          output += '%sll-%s' % (BREAKPOINTS[bp], number[1:])
+        # Push (positive number)
+        else:
+          output += '%ssh-%s' % (BREAKPOINTS[bp], number)
+      else:
+        output += '%s-%s' % (BREAKPOINTS[bp], number)
+      output += ' '
     output += 'columns">\n'
 
     # Nested rows
-    if nested_row is not None:
-      output += parse_row(nested_row, depth + 1)
+    if nested_row:
+      # Pull the first result out of the re search, and strip the parentheses from the string
+      output += parse_row(nested_row[0][1:-1], depth + 1)
     else:
       # Insert a blank line if there's no nested row
       output += '%s\n' % column_indent
@@ -69,7 +83,7 @@ def parse_row(input, depth):
 
 def unencode(input):
   output = ''
-  rows = input.lower().split('|')
+  rows = re.findall(re_row, input)
 
   # Processing rows
   for row in rows:
@@ -77,4 +91,4 @@ def unencode(input):
 
   print output
 
-unencode('sg12mg6lo4>')
+unencode('sg12mg6lo4lp2(sg12,sg6(sg12))|sg12')
