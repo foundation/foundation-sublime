@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from HTMLParser import HTMLParser
 import re
+import pprint
 
 class foundationParser(HTMLParser):
   # This is a dictionary that stores the structure of our HTML
@@ -11,19 +14,24 @@ class foundationParser(HTMLParser):
     self.prune(self.tree)
     return self.tree
 
-  def getLastChild(self, l):
-    for i in range(self.depth):
-      l = l[-1]['children']
-    return l
+  def getLastChild(self, tree, depth):
+    for i in range(depth):
+      tree = tree[-1]['children']
+    return tree
 
   # This method is run when the parser encounters an opening tag
   def handle_starttag(self, tag, attrs):
     attrlist = dict(attrs)
 
-    # No class? Forget it
-    if not 'class' in attrlist:
+    selfClosing = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr']
+
+    # We have to go deeper
+    self.depth += 1
+
+    # No class? Self-closing? Forget it
+    if not 'class' in attrlist or any(x in tag for x in selfClosing):
       return
-    # Skip this tag if it doesn't have any grid classes
+    # Or skip this tag if it doesn't have any grid classes
     if not any(x in attrlist['class'].split(' ') for x in ['row', 'column', 'columns']):
       return
 
@@ -33,14 +41,12 @@ class foundationParser(HTMLParser):
       'children': [],
     }
 
-    # We have to go deeper
-    self.depth += 1
     # If we're at the root of the HTML (depth == 0), append the node to the base object
     if self.depth is 0:
       self.tree.append(elem)
     # Otherwise, find the last node at the current depth and append the node as a child
     else:
-      self.getLastChild(self.tree).append(elem)
+      self.getLastChild(self.tree, self.depth).append(elem)
 
   # This method is run when the parser encounters a closing tag
   def handle_endtag(self, tag):
@@ -130,19 +136,16 @@ def encodeGrid(tree, root=True):
 
 syntax = """
   <div class="row">
-    <div class="large-8 columns">
-      <div class="row">
-        <div class="small-5 small-pull-2 columns"></div>
-        <div class="small-7 columns"></div>
-      </div>
+    <div class="large-6 columns">
     </div>
-  </div>
-  <div class="row">
+    <div class="large-6 columns">
+    </div>
   </div>
 """
 
 parser = foundationParser()
 parser.feed(syntax)
 tree = parser.getTree()
-# print tree;
+pp = pprint.PrettyPrinter()
+# pp.pprint(tree)
 print encodeGrid(tree)
