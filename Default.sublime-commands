@@ -1,0 +1,4 @@
+[
+  { "caption": "Foundation Grid: Encode", "command": "foundation_grid_encode" },
+  { "caption": "Foundation Grid: Decode", "command": "foundation_grid_decode" }
+]

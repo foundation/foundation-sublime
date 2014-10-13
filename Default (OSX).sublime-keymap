@@ -1,0 +1,5 @@
+[
+  {
+    "keys": ["super+alt+shift+f"], "command": "foundation_grid_decode"
+  }
+]
