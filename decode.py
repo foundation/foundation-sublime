@@ -26,9 +26,9 @@ BREAKPOINTS = {
   'xp': 'xlarge-pu',
 }
 
-# Regular expressions for finding column sizes and column clusters
-re_size   = r"[a-z]{2}-?[1-9]*(?:\(.*\))?"
-re_column = r"(?:"+re_size+")+"
+# Regular expressions for finding grid classes, columns, and rows
+re_class   = r"[a-z]{2}-?[1-9]*(?:\(.*\))?"
+re_column = r"(?:"+re_class+")+"
 re_row    = r"(?:"+re_column+",*)+"
 
 def parse_row(input, depth):
@@ -51,7 +51,7 @@ def parse_row(input, depth):
     output += '%s<div class="' % column_indent
 
     # Processing breakpoint classes
-    sizes = re.findall(re_size, base_column)
+    sizes = re.findall(re_class, base_column)
     for size in sizes:
       bp, number = size[:2], size[2:]
       if 'p' in bp:
