@@ -31,14 +31,15 @@ Good luck have Batman
 ## Checklist
 
 **Decoder**
-[ ] Parses rows, columns, and classes using regular expressions
-[ ] Translates class keywords into proper classes: sizing, offset, center, push, pull
-[x] Properly indents final HTML
+- Parses rows, columns, and classes using regular expressions
+- Translates class keywords into proper classes: sizing, offset, center, push, pull
+- ~~Properly indents final HTML~~
 
 **Encoder**
-[x] Parses a string of HTML into a structured object
-[x] Outputs grid elements with proper nesting and delimiters
-[ ] Outputs all possible classes: sizing, offset, center, push, pull
+- ~~Parses a string of HTML into a structured object~~
+- ~~Outputs grid elements with proper nesting and delimiters~~
+- ~~Outputs all possible classes: sizing, offset, center, push, pull~~
+- Handles edge cases: ~~rows with no children~~, rows directly inside rows
 
 ## Regular expression
 
@@ -46,7 +47,7 @@ This is the regular expression used to find grid classes.
 
 ```
 [a-z]{2}     # Two lowercase letters
--*?          # Zero or one hyphens
+-?          # Zero or one hyphens
 [1-9]*       # Zero or more numbers
 (?:
   \(.*\)     # A left parentheses, any content, and a right parentheses
