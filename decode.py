@@ -47,7 +47,6 @@ class FoundationGridDecodeCommand(sublime_plugin.TextCommand):
       # Processing breakpoint classes
       sizes = re.findall(self.re_class, base_column)
       for size in sizes:
-        print size
         bp, number = size[:2], size[2:]
         if number[0] == '0':
           number = number[1:]
