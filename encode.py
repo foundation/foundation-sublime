@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from HTMLParser import HTMLParser
-import re
-import pprint
+import sublime, sublime_plugin, re
 
 class foundationParser(HTMLParser):
   # This is a dictionary that stores the structure of our HTML
@@ -75,8 +74,8 @@ class foundationParser(HTMLParser):
       elif 'row' in elem['classes']:
         del tree[i]
 
-def encodeGrid(tree, root=True):
-  def parseClass(cls):
+class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
+  def parseClass(self, cls):
     output = ''
 
     re_class = r'(small|medium|large|xlarge){1}-((centered|offset|push|pull)-?)?[\d]*'
@@ -116,43 +115,47 @@ def encodeGrid(tree, root=True):
 
     return output
 
-  output = ''
-  for elem in tree:
-    # If it's a column, get the classes
-    if 'column' in elem['classes']:
-      classes = elem['classes'].split(' ')
-      for cls in classes:
-        output += parseClass(cls)
+  def encodeGrid(self, tree, root=True):
+    output = ''
+    for elem in tree:
+      # If it's a column, get the classes
+      if 'column' in elem['classes']:
+        classes = elem['classes'].split(' ')
+        for cls in classes:
+          output += self.parseClass(cls)
 
-    # If the element has children, encode those nodes as well
-    if elem['children']:
-      nestedOutput = encodeGrid(elem['children'], False)
-      # The children of a row are wrapped in parentheses
-      if not root and 'row' in elem['classes']:
-        nestedOutput = '(%s)' % nestedOutput
-      output += nestedOutput
+      # If the element has children, encode those nodes as well
+      if elem['children']:
+        nestedOutput = self.encodeGrid(elem['children'], False)
+        # The children of a row are wrapped in parentheses
+        if not root and 'row' in elem['classes']:
+          nestedOutput = '(%s)' % nestedOutput
+        output += nestedOutput
 
-    # Add an appropriate separator if the element is not the last of the bunch
-    if elem is not tree[-1]:
-      # Rows are separated by a pipe
-      if 'row' in elem['classes']:
-        output += '|'
-      # Columns are separated by a comma
-      elif 'column' in elem['classes']:
-        output += ','
+      # Add an appropriate separator if the element is not the last of the bunch
+      if elem is not tree[-1]:
+        # Rows are separated by a pipe
+        if 'row' in elem['classes']:
+          output += '|'
+        # Columns are separated by a comma
+        elif 'column' in elem['classes']:
+          output += ','
 
-  return output
+    return output
 
-syntax = """  
-  <div class="row">
-    <div class="large-6 columns"></div>
-    <div class="large-6 columns"></div>
-  </div>
-"""
+  def run(self, edit):
+    selections = self.view.sel()
+    for selection in selections:
+      # Get the HTML from the selection
+      edit = self.view.begin_edit('foundation-grid')
+      string = self.view.substr(selection)
 
-parser = foundationParser()
-parser.feed(syntax)
-tree = parser.getTree()
-pp = pprint.PrettyPrinter()
-# pp.pprint(tree)
-print encodeGrid(tree)
+      # Feed it to the parser
+      parser = foundationParser()
+      parser.feed(string)
+      tree = parser.getTree()
+
+      # Now encode it
+      code = self.encodeGrid(tree)
+      self.view.replace(edit, selection, code)
+      self.view.end_edit(edit)
