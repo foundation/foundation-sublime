@@ -11,9 +11,17 @@ class foundationParser(HTMLParser):
 
   selfClosingTags = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr']
 
+  def __init__(self, string):
+    HTMLParser.__init__(self)
+    print vars(self)
+    self.feed(string)
+    self.close()
+    self.reset()
+
   def getTree(self):
     self.prune(self.tree)
     return self.tree
+    self.tree = []
 
   def getLastChild(self, tree, depth):
     for i in range(depth):
@@ -104,6 +112,9 @@ class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
         output += term[0]
       # This is a sizing class
       if term.isdigit():
+        # Add a leading zero
+        if len(term) == 1:
+          term = '0'+term
         if isPull:
           output += '-'+term
         else:
@@ -150,10 +161,13 @@ class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
       edit = self.view.begin_edit('foundation-grid')
       string = self.view.substr(selection)
 
+      # print "Feeding the parser:\n%s" % string
+
       # Feed it to the parser
-      parser = foundationParser()
-      parser.feed(string)
+      parser = foundationParser(string)
       tree = parser.getTree()
+
+      # print "The parser returned:\n%s" % tree
 
       # Now encode it
       code = self.encodeGrid(tree)
