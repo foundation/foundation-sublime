@@ -21,7 +21,7 @@ class FoundationGridDecodeCommand(sublime_plugin.TextCommand):
   }
 
   # Regular expressions for finding grid classes, columns, and rows
-  re_class   = r"[a-z]{2}-?[1-9]*(?:\(.*\))?"
+  re_class   = r"[a-z]{2}-?[\d]*(?:\(.*\))?"
   re_column = r"(?:"+re_class+")+"
   re_row    = r"(?:"+re_column+",*)+"
 
@@ -47,7 +47,10 @@ class FoundationGridDecodeCommand(sublime_plugin.TextCommand):
       # Processing breakpoint classes
       sizes = re.findall(self.re_class, base_column)
       for size in sizes:
+        print size
         bp, number = size[:2], size[2:]
+        if number[0] == '0':
+          number = number[1:]
         if 'p' in bp:
           # Pull (negative number)
           if '-' in number:
