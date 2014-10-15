@@ -13,7 +13,6 @@ class foundationParser(HTMLParser):
 
   def __init__(self, string):
     HTMLParser.__init__(self)
-    print vars(self)
     self.feed(string)
     self.close()
     self.reset()
