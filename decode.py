@@ -90,7 +90,7 @@ class FoundationGridDecodeCommand(sublime_plugin.TextCommand):
   def run(self, edit):
     selections = self.view.sel()
     for selection in selections:
-      edit = self.view.begin_edit('foundation-grid')
+      #edit = self.view.begin_edit('foundation-grid') #Don't need this for ST3
       string = self.view.substr(selection)
       self.view.replace(edit, selection, self.decode(string))
-      self.view.end_edit(edit)
+      #self.view.end_edit(edit) #Don't need this for ST3
