@@ -157,7 +157,8 @@ class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
     selections = self.view.sel()
     for selection in selections:
       # Get the HTML from the selection
-      edit = self.view.begin_edit('foundation-grid')
+      #edit = self.view.begin_edit('foundation-grid') #ST3 - Signature for begin_edit and end_edit has changed. 
+      edit = self.view.begin_edit() #ST3 - Signature for begin_edit and end_edit has changed. 
       string = self.view.substr(selection)
 
       # print "Feeding the parser:\n%s" % string
