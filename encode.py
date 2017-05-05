@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 import sublime, sublime_plugin, re
 
 class foundationParser(HTMLParser):
@@ -157,7 +157,7 @@ class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
     selections = self.view.sel()
     for selection in selections:
       # Get the HTML from the selection
-      edit = self.view.begin_edit('foundation-grid')
+      #edit = self.view.begin_edit('foundation-grid')
       string = self.view.substr(selection)
 
       # print "Feeding the parser:\n%s" % string
@@ -171,4 +171,4 @@ class FoundationGridEncodeCommand(sublime_plugin.TextCommand):
       # Now encode it
       code = self.encodeGrid(tree)
       self.view.replace(edit, selection, code)
-      self.view.end_edit(edit)
+      #self.view.end_edit(edit)
